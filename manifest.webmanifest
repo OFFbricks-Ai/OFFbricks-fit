@@ -1,17 +1,16 @@
 {
-  "id": "./",
-  "name": "Pool Monitor",
-  "short_name": "Pool Monitor",
-  "description": "Acompanhamento offline de posições de liquidez: ROI, APR e gráficos.",
+  "name": "Registo da balança Tanita BC-601",
+  "short_name": "Balança",
+  "description": "Registo das medições da balança Tanita BC-601, com tabelas e gráficos.",
   "lang": "pt-PT",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#05060a",
-  "theme_color": "#05060a",
+  "background_color": "#EDF1F2",
+  "theme_color": "#0072B2",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
   ]
 }

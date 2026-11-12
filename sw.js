@@ -1,30 +1,38 @@
-// Service worker do Pool Monitor: guarda a app no dispositivo para abrir sem internet.
-// A versão é preenchida automaticamente ao gerar o pacote; cada versão nova muda este ficheiro e, com isso, é instalada.
-const VERSION = 'V9.6';
-const CACHE = 'pool-monitor-' + VERSION;
-const FILES = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './icons/favicon-32.png'];
+// Guarda a app para funcionar sem rede. Com rede, vai sempre buscar a versão mais recente.
+const CACHE = 'registo-tanita-v1';
+const FICHEIROS = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'];
 
-self.addEventListener('install', e => {
-  // cache: 'reload' garante que se descarrega a versão nova do servidor, e não uma cópia antiga da cache HTTP
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
+self.addEventListener('install', (e) => {
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FICHEIROS)).then(() => self.skipWaiting()));
 });
 
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys()
-    .then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k))))
-    .then(() => self.clients.claim()));
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys()
+      .then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim())
+  );
 });
 
-// Cache primeiro (abre logo, mesmo offline) e atualiza em segundo plano.
-self.addEventListener('fetch', e => {
-  const req = e.request, url = new URL(req.url);
-  if (req.method !== 'GET' || url.origin !== location.origin) return;
-  if (url.pathname.endsWith('/version.json')) return;   // a versão publicada vem sempre da rede
-  e.respondWith(caches.open(CACHE).then(async c => {
-    const hit = await c.match(req, { ignoreSearch: true });
-    const net = fetch(req)
-      .then(res => { if (res && res.ok) c.put(req, res.clone()); return res; })
-      .catch(async () => hit || (req.mode === 'navigate' ? c.match('./index.html') : undefined) || Response.error());
-    return hit || net;
-  }));
+self.addEventListener('fetch', (e) => {
+  const pedido = e.request;
+  if (pedido.method !== 'GET') return;
+  const url = new URL(pedido.url);
+  const guardar = (res) => {
+    if (res && (res.ok || res.type === 'opaque')) {
+      const copia = res.clone();
+      caches.open(CACHE).then((c) => c.put(pedido, copia));
+    }
+    return res;
+  };
+  if (url.origin !== self.location.origin) {
+    // Tipos de letra: usa a cópia guardada se existir.
+    e.respondWith(caches.match(pedido).then((h) => h || fetch(pedido).then(guardar)));
+    return;
+  }
+  e.respondWith(
+    fetch(pedido).then(guardar).catch(() =>
+      caches.match(pedido, { ignoreSearch: true }).then((h) => h || caches.match('index.html'))
+    )
+  );
 });
